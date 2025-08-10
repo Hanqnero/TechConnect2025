@@ -13,12 +13,19 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.on_event("startup")
 def on_startup():
     init_auth_db()
+    # Seed a test teacher user for development convenience
+    try:
+        if not get_user_by_login("tina"):
+            create_user("tina", "password123")
+    except Exception:
+        # Non-fatal if seeding fails (e.g., concurrent startup)
+        pass
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 def register(req: RegisterRequest) -> UserPublic:
     existing = get_user_by_login(req.login)
     if existing:
-        raise HTTPException(status_code=409, detail="Login is already taken")
+        raise HTTPException(status_code=409, detail="Логин уже занят")
     user = create_user(req.login, req.password)
     return UserPublic(**user)
 
@@ -26,9 +33,9 @@ def register(req: RegisterRequest) -> UserPublic:
 def login(req: LoginRequest, response: Response) -> dict:
     user = get_user_by_login(req.login)
     if not user:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=401, detail="Неверные учетные данные")
     if not verify_password(req.password, user["password_hash"]):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=401, detail="Неверные учетные данные")
 
     expires = timedelta(days=30) if req.remember else timedelta(hours=12)
     token = create_access_token({"sub": str(user["id"]), "login": user["login"]}, expires_delta=expires)
@@ -49,12 +56,12 @@ def login(req: LoginRequest, response: Response) -> dict:
 
     update_last_login(user["id"])  # non-critical
 
-    return {"message": "login ok", "user": {"id": user["id"], "login": user["login"]}}
+    return {"message": "вход выполнен", "user": {"id": user["id"], "login": user["login"]}}
 
 @router.post("/logout")
 def logout(response: Response) -> dict:
     response.delete_cookie("tc_session", path="/")
-    return {"message": "logged out"}
+    return {"message": "выход выполнен"}
 
 @router.get("/me")
 def me(user = Depends(get_current_user_optional)):

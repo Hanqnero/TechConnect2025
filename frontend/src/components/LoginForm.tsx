@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { ChangeEvent, FormEvent } from 'react';
 
 
@@ -18,6 +19,7 @@ function validate(form: LoginFormState) {
 }
 
 export default function LoginForm() {
+  const navigate = useNavigate();
   const [form, setForm] = useState<LoginFormState>({ login: '', password: '', remember: false });
   const [errors, setErrors] = useState<Partial<Record<keyof LoginFormState, string>>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -47,15 +49,39 @@ export default function LoginForm() {
     try {
       // Never store raw passwords. Send over HTTPS to your backend.
       // Tokens should be issued into httpOnly, secure cookies by the server.
-      await new Promise((res) => setTimeout(res, 800)); // simulate network
+      const res = await fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // receive/set httpOnly cookie
+        body: JSON.stringify({ login: form.login, password: form.password, remember: form.remember })
+      });
+
+      if (!res.ok) {
+        let detail = 'Не удалось войти. Проверьте логин/пароль.';
+        try {
+          const data = await res.json();
+          if (data?.detail) detail = Array.isArray(data.detail) ? data.detail.map((d: any) => d.msg || d).join(', ') : String(data.detail);
+        } catch {}
+        throw new Error(detail);
+      }
 
       if (form.remember) localStorage.setItem('tc.login', form.login);
       else localStorage.removeItem('tc.login');
 
-      // Example: navigate to app/home after successful login
-      setMessage('Вход выполнен. Перенаправление...');
+      // Verify session and greet user
+      const meRes = await fetch('/auth/me', { credentials: 'include' });
+      if (meRes.ok) {
+        const me = await meRes.json();
+        if (me?.authenticated) {
+          // Redirect to main screen after successful login
+          navigate('/', { replace: true });
+          return;
+        }
+      }
+      setMessage('Вход выполнен.');
     } catch (err) {
-      setMessage('Не удалось войти. Попробуйте ещё раз.');
+      const msg = err instanceof Error ? err.message : 'Не удалось войти. Попробуйте ещё раз.';
+      setMessage(msg);
     } finally {
       setSubmitting(false);
       // Clear the password from memory quickly after submit
@@ -153,9 +179,6 @@ export default function LoginForm() {
           Войти
         </button>
       </div>
-      <p className="mt-4 text-xs text-gray-500">
-        Мы никогда не храним ваш пароль. В целях безопасности токены должны передаваться сервером в httpOnly, secure, SameSite=strict cookies. Не используйте localStorage/sessionStorage для токенов.
-      </p>
     </form>
   );
 }

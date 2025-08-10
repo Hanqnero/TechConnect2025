@@ -1,5 +1,4 @@
--- Users (both students and teachers)
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     full_name TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
@@ -7,16 +6,14 @@ CREATE TABLE users (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Sports sections
-CREATE TABLE sections (
+CREATE TABLE IF NOT EXISTS sections (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
     description TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Classes within sections
-CREATE TABLE classes (
+CREATE TABLE IF NOT EXISTS classes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     section_id INTEGER NOT NULL,
     date DATETIME NOT NULL,
@@ -24,8 +21,7 @@ CREATE TABLE classes (
     FOREIGN KEY (section_id) REFERENCES sections(id)
 );
 
--- Membership of users in sections (students, teachers)
-CREATE TABLE section_members (
+CREATE TABLE IF NOT EXISTS section_members (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     section_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
@@ -35,8 +31,7 @@ CREATE TABLE section_members (
     UNIQUE(section_id, user_id)
 );
 
--- Attendance records
-CREATE TABLE attendance (
+CREATE TABLE IF NOT EXISTS attendance (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     class_id INTEGER NOT NULL,
     student_id INTEGER NOT NULL,
@@ -47,8 +42,7 @@ CREATE TABLE attendance (
     UNIQUE(class_id, student_id)
 );
 
--- Permissions for managing sections
-CREATE TABLE section_permissions (
+CREATE TABLE IF NOT EXISTS section_permissions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     section_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
@@ -56,4 +50,12 @@ CREATE TABLE section_permissions (
     FOREIGN KEY (section_id) REFERENCES sections(id),
     FOREIGN KEY (user_id) REFERENCES users(id),
     UNIQUE(section_id, user_id, permission)
+);
+
+-- Mapping between auth service login and sports users (app-layer linkage)
+CREATE TABLE IF NOT EXISTS auth_links (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    auth_login TEXT NOT NULL UNIQUE,
+    sports_user_id INTEGER NOT NULL,
+    FOREIGN KEY (sports_user_id) REFERENCES users(id)
 );

@@ -31,3 +31,27 @@ def init_db(db_path="sports.db", schema_path="init.sql"):
 
 if __name__ == "__main__":
     init_db()
+
+def seed_db(db_path="sports.db", seed_path="seed.sql"):
+    """Load seed data into an existing DB created with init.sql."""
+    base_dir = Path(__file__).resolve().parent
+
+    db_file = Path(db_path)
+    if not db_file.is_absolute():
+        db_file = base_dir / db_file
+
+    seed_file = Path(seed_path)
+    if not seed_file.is_absolute():
+        seed_file = base_dir / seed_file
+
+    if not seed_file.is_file():
+        raise FileNotFoundError(f"Seed file not found: {seed_file}")
+
+    sql = seed_file.read_text(encoding="utf-8")
+    conn = sqlite3.connect(str(db_file))
+    try:
+        conn.executescript(sql)
+        conn.commit()
+        print(f"Database seeded at {db_file} using {seed_file}")
+    finally:
+        conn.close()
