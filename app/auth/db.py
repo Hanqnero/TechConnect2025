@@ -5,7 +5,8 @@ from typing import Optional, Dict, Any
 
 from ..passwords import hash_password
 
-AUTH_DB_PATH = Path(__file__).resolve().parent.parent / "auth.db"
+# Store credentials DB under app/data
+AUTH_DB_PATH = Path(__file__).resolve().parent.parent / "data" / "auth.db"
 
 def _connect() -> sqlite3.Connection:
     conn = sqlite3.connect(str(AUTH_DB_PATH))
