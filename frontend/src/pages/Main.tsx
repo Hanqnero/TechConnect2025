@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 type Role = 'student' | 'teacher';
@@ -14,6 +14,11 @@ export default function Main() {
   const [attendedDates, setAttendedDates] = useState<Set<string>>(new Set());
   const [teacherClassDates, setTeacherClassDates] = useState<Set<string>>(new Set());
   const [futureStudentDates, setFutureStudentDates] = useState<Set<string>>(new Set());
+  // Guard effects until whoami finishes to avoid initial wrong user fetch and race conditions
+  const [whoamiReady, setWhoamiReady] = useState(false);
+  // Request guards to ignore stale responses
+  const studentDatesReqRef = useRef(0);
+  const teacherDatesReqRef = useRef(0);
 
   // Create a simple list of days for current month
   const today = new Date();
@@ -37,17 +42,22 @@ export default function Main() {
           if (data?.full_name) setFullName(data.full_name);
         }
       } catch {}
+      finally {
+        // Allow downstream effects to run only after whoami attempt completes
+        setWhoamiReady(true);
+      }
     })();
   }, []);
 
   // Load attendance highlights for current month for students
   useEffect(() => {
     (async () => {
-      if (!sportsUserId || role !== 'student') {
+      if (!whoamiReady || !sportsUserId || role !== 'student') {
         setAttendedDates(new Set());
         setFutureStudentDates(new Set());
         return;
       }
+      const reqId = ++studentDatesReqRef.current;
       const month = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
       try {
         const [pRes, lRes, fRes] = await Promise.all([
@@ -58,7 +68,9 @@ export default function Main() {
         const p = pRes.ok ? await pRes.json() : { dates: [] };
         const l = lRes.ok ? await lRes.json() : { dates: [] };
         const f = fRes.ok ? await fRes.json() : { dates: [] };
-        const all = new Set<string>([...p.dates ?? [], ...l.dates ?? []]);
+        // Ignore if a newer request has started
+        if (reqId !== studentDatesReqRef.current) return;
+        const all = new Set<string>([...(p.dates ?? []), ...(l.dates ?? [])]);
         setAttendedDates(all);
         setFutureStudentDates(new Set((f.dates ?? []) as string[]));
       } catch {
@@ -66,27 +78,30 @@ export default function Main() {
         setFutureStudentDates(new Set());
       }
     })();
-  }, [sportsUserId, role]);
+  }, [sportsUserId, role, whoamiReady]);
 
   // Load class dates for teacher to highlight
   useEffect(() => {
     (async () => {
-      if (!sportsUserId || role !== 'teacher') {
+      if (!whoamiReady || !sportsUserId || role !== 'teacher') {
         setTeacherClassDates(new Set());
         return;
       }
+      const reqId = ++teacherDatesReqRef.current;
       const month = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
       try {
         const res = await fetch(`/api/classes/dates?user_id=${sportsUserId}&month=${month}`);
         const data = res.ok ? await res.json() : { dates: [] };
+        if (reqId !== teacherDatesReqRef.current) return;
         setTeacherClassDates(new Set((data?.dates ?? []) as string[]));
       } catch {
         setTeacherClassDates(new Set());
       }
     })();
-  }, [sportsUserId, role]);
+  }, [sportsUserId, role, whoamiReady]);
 
   useEffect(() => {
+    let active = true;
     async function load() {
       if (!selectedDate) return;
       setLoading(true);
@@ -94,12 +109,14 @@ export default function Main() {
         const params = new URLSearchParams({ date: selectedDate, user_id: String(sportsUserId) });
         const res = await fetch(`/api/schedule?${params.toString()}`);
         const data = await res.json();
+        if (!active) return;
         setClasses(data.classes || []);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     }
     load();
+    return () => { active = false; };
   }, [selectedDate, role, sportsUserId]);
 
   const navigate = useNavigate();
