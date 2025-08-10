@@ -19,13 +19,12 @@ DELETE FROM users;
 PRAGMA foreign_keys = ON;
 
 -- Пользователи (студенты и преподаватели)
--- Важно: ID 1..7 сохраняются, т.к. на них ссылаются ниже и логика приложения
 INSERT INTO users (id, full_name, email, role, created_at) VALUES
   (1, 'Администратор', 'admin@edu.susu.ru', 'admin', CURRENT_TIMESTAMP),
   (2, 'Иван Иванов', 'ivanov@edu.susu.ru', 'student', CURRENT_TIMESTAMP),
   (3, 'Мария Смирнова', 'smirnova@edu.susu.ru', 'student', CURRENT_TIMESTAMP),
   (4, 'Даниил Волков', 'volkov.dan@edu.susu.ru', 'student', CURRENT_TIMESTAMP),
-  (5, 'Тина Петрова', 'tina@edu.susu.ru', 'teacher', CURRENT_TIMESTAMP);
+  (5, 'Валентина Петрова', 'tina@edu.susu.ru', 'teacher', CURRENT_TIMESTAMP);
 
 -- Секции
 INSERT INTO sections (id, name, description, created_at) VALUES
