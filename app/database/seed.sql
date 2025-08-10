@@ -1,8 +1,8 @@
 -- Локализованные (RU) тестовые данные для sports.db
 -- Сценарий очищает БД и заполняет её демонстрационными данными.
 -- Примеры запуска:
---   1) Python: import sqlite3; conn=sqlite3.connect('app/database/sports.db'); conn.executescript(open('app/database/seed.sql','r',encoding='utf-8').read()); conn.commit(); conn.close()
---   2) sqlite CLI: sqlite3 app/database/sports.db ".read app/database/seed.sql"
+--   1) Python: import sqlite3; conn=sqlite3.connect('app/data/sports.db'); conn.executescript(open('app/database/seed.sql','r',encoding='utf-8').read()); conn.commit(); conn.close()
+--   2) sqlite CLI: sqlite3 app/data/sports.db ".read app/database/seed.sql"
 
 PRAGMA foreign_keys = OFF;
 BEGIN TRANSACTION;

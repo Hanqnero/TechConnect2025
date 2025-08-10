@@ -2,16 +2,17 @@ import sqlite3
 from pathlib import Path
 
 def init_db(db_path="sports.db", schema_path="init.sql"):
-    # Resolve paths relative to this file's directory
-    base_dir = Path(__file__).resolve().parent
+    # Resolve DB under app/data and schema under app/database by default
+    data_dir = Path(__file__).resolve().parent.parent / 'data'
+    schema_dir = Path(__file__).resolve().parent  # app/database
 
     db_file = Path(db_path)
     if not db_file.is_absolute():
-        db_file = base_dir / db_file
+        db_file = data_dir / db_file
 
     schema_file = Path(schema_path)
     if not schema_file.is_absolute():
-        schema_file = base_dir / schema_file
+        schema_file = schema_dir / schema_file
 
     # Read schema from file
     if not schema_file.is_file():
@@ -34,15 +35,16 @@ if __name__ == "__main__":
 
 def seed_db(db_path="sports.db", seed_path="seed.sql"):
     """Load seed data into an existing DB created with init.sql."""
-    base_dir = Path(__file__).resolve().parent
+    data_dir = Path(__file__).resolve().parent.parent / 'data'
+    seeds_dir = Path(__file__).resolve().parent  # app/database
 
     db_file = Path(db_path)
     if not db_file.is_absolute():
-        db_file = base_dir / db_file
+        db_file = data_dir / db_file
 
     seed_file = Path(seed_path)
     if not seed_file.is_absolute():
-        seed_file = base_dir / seed_file
+        seed_file = seeds_dir / seed_file
 
     if not seed_file.is_file():
         raise FileNotFoundError(f"Seed file not found: {seed_file}")

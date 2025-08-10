@@ -10,7 +10,7 @@ Usage examples:
       python util/seed_sports_db.py
 
   - Specify custom paths:
-      python util/seed_sports_db.py --db app/database/sports.db --seed app/database/seed.sql --schema app/database/init.sql
+      python util/seed_sports_db.py --db app/data/sports.db --seed app/database/seed.sql --schema app/database/init.sql
 
   - Skip schema application:
       python util/seed_sports_db.py --skip-schema
@@ -38,7 +38,7 @@ def run_sql_script(db_path: Path, sql_path: Path) -> None:
 
 def main() -> int:
     repo_root = Path(__file__).resolve().parents[1]
-    default_db = repo_root / "app" / "database" / "sports.db"
+    default_db = repo_root / "app" / "data" / "sports.db"
     default_seed = repo_root / "app" / "database" / "seed.sql"
     default_schema = repo_root / "app" / "database" / "init.sql"
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 r"""
-List all users from a SQLite DB (sports.db).
+List all users from the sports SQLite DB.
 Usage:
-  python list_users.py --db path\to\sports.db
-If --db is omitted, it tries ./sports.db
+    python util/list_users.py --db app/data/sports.db
+If --db is omitted, it defaults to the repository's app/data/sports.db.
 """
 import argparse
 import sqlite3
@@ -11,8 +11,11 @@ import sys
 from pathlib import Path
 
 def main():
+    repo_root = Path(__file__).resolve().parents[1]
+    default_db = repo_root / "app" / "data" / "sports.db"
+
     parser = argparse.ArgumentParser(description="List users from sports.db")
-    parser.add_argument("--db", default="sports.db", help="Path to sports.db (default: ./sports.db)")
+    parser.add_argument("--db", default=str(default_db), help=f"Path to sports.db (default: {default_db})")
     args = parser.parse_args()
 
     db_path = Path(args.db)

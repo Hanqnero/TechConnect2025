@@ -27,6 +27,6 @@ npm run dev
 
 ## Notes
 - Credentials DB: `app/data/auth.db` (SQLite)
-- App data DB: `app/database/sports.db`
+- App data DB: `app/data/sports.db`
 - Cookie settings via env: COOKIE_SECURE, COOKIE_SAMESITE, COOKIE_DOMAIN
 - Vite dev proxy forwards /auth and /health to http://127.0.0.1:8000 so you can call relative paths in the frontend and keep cookies on the same origin.

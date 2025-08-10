@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from .database.init import init_db, seed_db
 from .auth.security import get_current_user_optional
 
-DB_PATH = Path(__file__).resolve().parent / 'database' / 'sports.db'
+DB_PATH = Path(__file__).resolve().parent / 'data' / 'sports.db'
 
 def _conn() -> sqlite3.Connection:
     conn = sqlite3.connect(str(DB_PATH))

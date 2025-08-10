@@ -22,4 +22,4 @@ Cookies:
 
 Data stores:
 - Credentials: `app/auth.db` (SQLite)
-- App data: existing `app/database/sports.db`
+- App data: existing `app/data/sports.db`
